@@ -114,6 +114,78 @@ When the access token expires, the client can request a new one using the refres
 
 ---
 
+## API Endpoints
+
+Register User
+POST /user/signup
+
+Request Body
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+Login User
+POST /user/login
+
+Request Body
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+Response
+
+{
+  "result": "success",
+  "accessToken": "..."
+}
+Refresh Access Token
+POST /refresh
+
+Returns a new Access Token using a valid Refresh Token.
+
+Create Short URL
+POST /shorten
+
+Headers
+
+Authorization: Bearer <access_token>
+
+Request Body
+
+{
+  "Link": "https://www.google.com"
+}
+
+Custom Short Code
+
+{
+  "shortCode": "google",
+  "Link": "https://www.google.com"
+}
+Get User URLs
+GET /urls
+
+Headers
+
+Authorization: Bearer <access_token>
+
+Returns all URLs created by the authenticated user.
+
+Redirect to Original URL
+GET /:shortcode
+
+Example
+
+GET /google
+
+Redirects the user to the original URL.
+
+---
+
 ## Running PostgreSQL with Docker
 
 The database runs inside a Docker container to ensure a consistent setup across different environments.

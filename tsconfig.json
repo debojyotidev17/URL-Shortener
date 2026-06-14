@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "rootDir": ".",
+        "outDir": "./dist",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ESNext",
+
+        "types": ["node"],
+
+        "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true,
+
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+
+        "verbatimModuleSyntax": false,
+        "isolatedModules": true,
+        "noUncheckedSideEffectImports": true,
+        "moduleDetection": "force",
+
+        "skipLibCheck": true
+    },
+
+    "include": ["src/**/*", "drizzle.config.ts"],
+
+    "exclude": ["dist", "node_modules"]
+}

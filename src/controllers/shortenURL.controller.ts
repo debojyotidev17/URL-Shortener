@@ -2,11 +2,20 @@ import { Request, Response } from "express";
 import { Ijson } from "../types/types.js";
 import { nanoid } from "nanoid";
 import { insertShortCodeInDB } from "../services/user.service.js";
-
+import { linkCreationSchema } from "../validations/user.validation.js";
 export const shortenURL = async (req: Request, res: Response) => {
     try {
         const { userId } = req.user;
-        let { shortCode, Link } = req.body;
+        const ans = linkCreationSchema.safeParse(req.body);
+        if (!ans.success) {
+            res.status(400).json({
+                result: "failure",
+                errors: ans.error.issues,
+            } as Ijson);
+            return;
+        }
+
+        let { shortCode, Link } = ans.data;
 
         if (!Link) {
             res.status(417).json({

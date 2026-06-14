@@ -5,7 +5,7 @@ import { DeleteURL } from "../services/user.service.js";
 import { url } from "inspector";
 
 export const deleteUrl = async (req: Request, res: Response) => {
-    const { id: UserId } = req.user;
+    const { userId:UserId } = req.user;
     const urlId = Number(req.params.id);
     if (isNaN(urlId)) {
         return res.status(400).json({

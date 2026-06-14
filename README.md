@@ -1,46 +1,45 @@
 # URL Shortener API
 
-This is a URL Shortener backend built with Node.js, TypeScript, Express, PostgreSQL, Drizzle ORM, Docker, JWT Authentication, and Zod.
+A secure URL shortener backend built with TypeScript, Express, PostgreSQL, Drizzle ORM, Docker, Zod validation, bcrypt password hashing, JWT access and refresh token authentication, protected routes, custom short links, and URL redirection.
 
-The goal of this project was to move beyond basic CRUD applications and build something that resembles a real-world backend service. Users can register, log in, create short URLs, manage their own links, and access protected resources through JWT-based authentication.
-
-The project also includes a refresh token flow, route protection using middleware, request validation, and a PostgreSQL database running inside Docker for a consistent development environment.
+This project was built to explore real-world backend development concepts beyond basic CRUD applications. It includes user authentication, token-based authorization, route protection through middleware, database relationships, request validation, and a Dockerized PostgreSQL setup.
 
 ---
 
 ## Features
 
-### User Authentication
+### Authentication & Authorization
 
-* User registration with email and password
-* Secure password hashing using bcrypt
-* Login with JWT authentication
-* Access Token and Refresh Token implementation
+* User registration
+* User login
+* Password hashing using bcrypt
+* JWT Access Token authentication
+* JWT Refresh Token workflow
 * Protected routes using custom authentication middleware
-* Refresh token support for generating new access tokens
+* HTTP-only refresh token cookies
 
-### URL Management
+### URL Shortening
 
-* Create shortened URLs
-* Create custom short codes
-* Automatically generate short codes using NanoID
-* Redirect users from a short URL to the original destination
-* View all URLs created by the authenticated user
+* Create custom short URLs
+* Auto-generate short codes using NanoID
+* Redirect users using short URLs
+* Retrieve all URLs created by the authenticated user
 
-### Validation and Security
+### Validation & Security
 
 * Request validation using Zod
-* Password hashing with bcrypt
-* JWT verification and route protection
-* HTTP-only refresh token cookies
-* Environment variable configuration using dotenv
+* Secure password storage with bcrypt
+* Access token verification
+* Refresh token validation
+* Environment-based configuration
 
 ### Database
 
-* PostgreSQL as the primary database
-* Drizzle ORM for type-safe database operations
-* One-to-many relationship between users and URLs
-* PostgreSQL containerized with Docker Compose
+* PostgreSQL
+* Drizzle ORM
+* Type-safe database operations
+* User-to-URL relationship mapping
+* Dockerized PostgreSQL using Docker Compose
 
 ---
 
@@ -61,7 +60,7 @@ The project also includes a refresh token flow, route protection using middlewar
 
 ### Authentication
 
-* JSON Web Tokens (JWT)
+* JWT (JSON Web Tokens)
 * bcrypt
 
 ### Validation
@@ -80,171 +79,374 @@ The project also includes a refresh token flow, route protection using middlewar
 src/
 │
 ├── controllers/
+│
 ├── routes/
+│
 ├── services/
+│
 ├── middlewares/
+│
 ├── validations/
+│
 ├── models/
+│
 ├── db/
+│
 ├── utils/
+│
 ├── types/
+│
 └── index.ts
 ```
 
-The project follows a layered architecture where controllers handle incoming requests, services contain business logic, middleware manages authentication, and utilities contain reusable helper functions. This separation keeps the codebase easier to maintain and scale.
+The project follows a layered architecture where:
+
+* Controllers handle incoming requests and responses
+* Services contain business logic and database interactions
+* Middleware manages authentication and authorization
+* Validation schemas ensure request integrity
+* Utilities provide reusable helper functions
 
 ---
 
 ## Authentication Flow
 
-When a user logs in successfully:
+When a user logs in:
 
-1. The server validates the user's credentials.
-2. An Access Token is generated for authenticated requests.
-3. A Refresh Token is generated and stored in an HTTP-only cookie.
-4. The Access Token is returned to the client.
+1. Credentials are validated.
+2. An Access Token is generated.
+3. A Refresh Token is generated.
+4. The Refresh Token is stored in an HTTP-only cookie.
+5. The Access Token is returned to the client.
 
-Protected routes require an access token in the Authorization header:
+Protected routes require:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-When the access token expires, the client can request a new one using the refresh token without requiring the user to log in again.
+When the Access Token expires, a new one can be generated using the Refresh Token without requiring the user to log in again.
+
+---
+
+## Route Overview
+
+| Method | Endpoint     | Description                  | Protected |
+| ------ | ------------ | ---------------------------- | --------- |
+| POST   | /user/signup | Register a new user          | No        |
+| POST   | /user/login  | Login user                   | No        |
+| POST   | /refresh     | Generate new access token    | No        |
+| POST   | /shorten     | Create a short URL           | Yes       |
+| GET    | /urls        | Get all URLs created by user | Yes       |
+| GET    | /:shortcode  | Redirect to original URL     | No        |
 
 ---
 
 ## API Endpoints
 
-Register User
+### Register User
+
+```http
 POST /user/signup
+```
 
 Request Body
 
+```json
 {
   "name": "John Doe",
   "email": "john@example.com",
   "password": "password123"
 }
-Login User
+```
+
+---
+
+### Login User
+
+```http
 POST /user/login
+```
 
 Request Body
 
+```json
 {
   "email": "john@example.com",
   "password": "password123"
 }
+```
 
 Response
 
+```json
 {
   "result": "success",
   "accessToken": "..."
 }
-Refresh Access Token
+```
+
+---
+
+### Refresh Access Token
+
+```http
 POST /refresh
+```
 
-Returns a new Access Token using a valid Refresh Token.
+Uses a valid refresh token to generate a new access token.
 
-Create Short URL
+Response
+
+```json
+{
+  "success": "success",
+  "accessToken": "..."
+}
+```
+
+---
+
+### Create Short URL
+
+```http
 POST /shorten
+```
 
 Headers
 
+```http
 Authorization: Bearer <access_token>
+```
 
 Request Body
 
+```json
 {
   "Link": "https://www.google.com"
 }
+```
 
 Custom Short Code
 
+```json
 {
   "shortCode": "google",
   "Link": "https://www.google.com"
 }
-Get User URLs
+```
+
+Response
+
+```json
+{
+  "result": "success",
+  "message": "short link created successfully"
+}
+```
+
+---
+
+### Get All URLs
+
+```http
 GET /urls
+```
 
 Headers
 
+```http
 Authorization: Bearer <access_token>
+```
 
-Returns all URLs created by the authenticated user.
+Response
 
-Redirect to Original URL
+```json
+{
+  "result": "success",
+  "data": []
+}
+```
+
+---
+
+### Redirect Using Short Code
+
+```http
 GET /:shortcode
+```
 
 Example
 
+```http
 GET /google
+```
 
-Redirects the user to the original URL.
+Response
+
+```http
+302 Redirect
+```
+
+Redirects the user to the original URL stored in the database.
+
+---
+
+## Database Schema
+
+### User
+
+| Field    | Type    |
+| -------- | ------- |
+| id       | Integer |
+| name     | String  |
+| email    | String  |
+| password | String  |
+
+### URL
+
+| Field     | Type    |
+| --------- | ------- |
+| id        | Integer |
+| userId    | Integer |
+| shortCode | String  |
+| Link      | String  |
+
+Relationship
+
+```text
+User (1) ──────────── (N) URL
+```
+
+A single user can create multiple shortened URLs.
 
 ---
 
 ## Running PostgreSQL with Docker
 
-The database runs inside a Docker container to ensure a consistent setup across different environments.
-
-Start the database:
+Start PostgreSQL:
 
 ```bash
 docker compose up -d
 ```
 
-Stop the database:
-
-```bash
-docker compose down
-```
-
-Check running containers:
+View running containers:
 
 ```bash
 docker ps
 ```
 
-This removes the need to install PostgreSQL directly on the host machine and makes onboarding easier for anyone running the project.
+Stop PostgreSQL:
+
+```bash
+docker compose down
+```
+
+Using Docker ensures a consistent development environment without requiring PostgreSQL to be installed locally.
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root.
+
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+
+ACCESS_TOKEN_SECRET=your_access_secret
+
+REFRESH_TOKEN_SECRET=your_refresh_secret
+```
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+```
+
+Move into the project directory:
+
+```bash
+cd url-shortener
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start PostgreSQL:
+
+```bash
+docker compose up -d
+```
+
+Push database schema:
+
+```bash
+npm run db:push
+```
+
+Start development server:
+
+```bash
+npm run dev
+```
+
+Build project:
+
+```bash
+npm run build
+```
+
+Run production build:
+
+```bash
+npm run start
+```
 
 ---
 
 ## What I Learned
 
-Building this project helped me gain practical experience with:
+This project helped me gain practical experience with:
 
-* Designing REST APIs
-* Implementing authentication and authorization
-* Working with JWT access and refresh tokens
-* Password hashing and credential validation
-* Database design with PostgreSQL
-* Type-safe database operations using Drizzle ORM
-* Structuring larger Express applications
-* Middleware-based authentication
-* Request validation using Zod
-* Managing services and business logic separately from controllers
-* Running development infrastructure using Docker
+* REST API design
+* Authentication and authorization
+* JWT access and refresh token workflows
+* Password hashing and credential management
+* PostgreSQL database design
+* Drizzle ORM
+* Middleware architecture
+* Request validation with Zod
+* TypeScript backend development
+* Service-oriented project structure
+* Dockerized development environments
 
 ---
 
 ## Future Improvements
 
-Some features I would like to add in the future:
+Planned enhancements include:
 
-* Click analytics and tracking
+* URL click analytics
 * URL expiration support
-* Edit and delete URL endpoints
+* Update and delete URL endpoints
 * Rate limiting
 * Refresh token rotation
-* API documentation with Swagger
+* Swagger/OpenAPI documentation
 * Automated testing
 * Redis caching
-* Containerizing the backend service itself
-* Role-based access control
+* Containerized backend deployment
+* Role-based authorization
 
 ---
 
-This project was built as a learning exercise to explore modern backend development practices while working with TypeScript, PostgreSQL, Drizzle ORM, Docker, and JWT-based authentication.
+## License
+
+This project is open source and available under the MIT License.

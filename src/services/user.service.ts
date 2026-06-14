@@ -66,15 +66,11 @@ export const checkDBforDeletion = async (userId: number, urlId: number) => {
         .from(url)
         .where(eq(url.id, urlId))
         .limit(1);
+
     if (!result) {
         return result;
     }
-
-    if (result.userId === userId) {
-        return true;
-    } else {
-        return false;
-    }
+    return result.userId === userId;
 };
 
 export const DeleteURL = async (urlId: number) => {

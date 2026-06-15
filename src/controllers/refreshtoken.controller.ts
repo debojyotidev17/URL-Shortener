@@ -46,7 +46,7 @@ export const refreshToken = async (
             accessToken,
         });
     } catch (error) {
-        console.error(error);
+        res.clearCookie("refreshToken");
 
         res.status(403).json({
             success: "failure",

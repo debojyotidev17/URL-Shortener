@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { generateAccessToken } from "../utils/jwthelpers.js";
+import {
+    generateAccessToken,
+    generateRefreshToken,
+} from "../utils/jwthelpers.js";
 
 export const refreshToken = async (
     req: Request,
     res: Response,
 ): Promise<void> => {
     try {
-        const refreshToken = req.headers.authorization?.split(" ")[1];
+        const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
             res.status(401).json({
@@ -28,6 +31,14 @@ export const refreshToken = async (
         const accessToken = generateAccessToken({
             userId: payload.userId,
             email: payload.email,
+        });
+
+        const newRefreshToken = generateRefreshToken(payload);
+
+        res.cookie("refreshToken", newRefreshToken, {
+            httpOnly: true, // prevents JS to read the cookie
+            sameSite: "strict", // Cookie only sent when the request originates from your own site.
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
         res.status(200).json({
